@@ -59,7 +59,6 @@ interactive-avatars/
 ├── index.html            # Page shell: header and the empty grid that script.js fills
 ├── styles.css            # Layout, theming and animation styles
 ├── script.js             # Team data, avatar rendering and interaction logic
-├── Lineup in Motion.html # Secondary page (work in progress)
 └── README.md
 ```
 
