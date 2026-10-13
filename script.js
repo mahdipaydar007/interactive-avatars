@@ -61,7 +61,7 @@
 
   var people = [
     {
-      n: "Markus White", r: "Creative director", tint: "#fde1de", cheeks: 1,
+      n: "Emma White", r: "Creative director", tint: "#fde1de", cheeks: 1,
       body: bodies.tee("#272a4d"),
       back: p("M60 92 C56 44 144 44 140 92 L140 132 Q140 138 134 138 L120 138 L120 100 L80 100 L80 138 L66 138 Q60 138 60 132Z", PINK),
       front: p("M64 88 C60 46 140 46 136 88 C126 80 118 66 112 60 C104 72 84 80 64 88Z", PINK),
