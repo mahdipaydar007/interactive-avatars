@@ -94,7 +94,7 @@
         '<g class="cur"><path d="M0 0 L0 15 L4.5 11.5 L7.5 18 L10 17 L7 10.5 L12.5 10.5Z" fill="' + INK + '" stroke="#fff" stroke-width="1.5" stroke-linejoin="round"/></g>'
     },
     {
-      n: "Eathen Taylor", r: "Front-end engineer", tint: "#fdeec2", noBrows: 1, underHair: 1,
+      n: "Ethan Taylor", r: "Front-end engineer", tint: "#fdeec2", noBrows: 1, underHair: 1,
       body: bodies.hoodie(YEL),
       back: "",
       front: '<g class="cap">' + p("M63 80 C60 40 140 40 137 80 Q100 71 63 80Z", YEL) + '<circle cx="100" cy="43" r="3" fill="' + INK + '"/>' + p("M58 80 Q100 68 142 80 L142 87 Q100 78 58 87Z", YEL) + '</g>',
