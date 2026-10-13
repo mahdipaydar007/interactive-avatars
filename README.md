@@ -93,10 +93,6 @@ Issues and pull requests are welcome. For larger changes, please open an issue f
 4. Push the branch (`git push origin feature/your-feature`)
 5. Open a pull request
 
-## License
-
-[Add your chosen license here, for example MIT, and include a `LICENSE` file in the repository.]
-
 ## Author
 
 Built by [mahdipuya](https://github.com/mahdipuya).
