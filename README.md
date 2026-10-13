@@ -117,12 +117,6 @@ Props and symbols spring in and out using CSS `transform: scale()` transitions (
 
 Current versions of Chrome, Edge, Firefox and Safari. The page uses SVG, CSS custom properties, `transform-box`, `requestAnimationFrame` and the Web Animations API (for Kai's flash).
 
-## Accessibility
-
-- Cards are focusable (`tabindex="0"`), and focusing one plays its animation.
-- Decorative SVGs are marked `aria-hidden`; the name, role and blurb remain as real text.
-- CSS loop animations (stroke drawing, steam, page flips and so on) are disabled under `prefers-reduced-motion: reduce`. The facial expression engine in `script.js` does not check this setting yet, so adding that check is a recommended improvement.
-
 ## License
 
 Add the license of your choice here (for example MIT).
