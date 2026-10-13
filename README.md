@@ -1,122 +1,102 @@
-# Meet the Team: Animated Vector Avatars
+# Animated Vector Avatars
 
-An interactive team page that shows each teammate as a flat vector avatar. Hovering (or tapping) a card brings the character to life with a facial-expression animation and a small themed scene built around what they love: coding, painting, math, music, gaming, reading, gardening, coffee and photography.
+An interactive "Meet the Team" page that presents nine team members as animated vector avatars. Hover over a portrait, or tap it on a touch screen, and that person's avatar comes to life with an animation of its own.
 
-Pure HTML, CSS and vanilla JavaScript. No framework, no build step, no dependencies. The only external request is the Poppins font from Google Fonts, which falls back to the system UI font if it can't load.
+**[Live demo →](https://interactive-avatars-umber.vercel.app)**
 
 ---
 
+## Overview
+
+Animated Vector Avatars is a lightweight front-end project built with plain HTML, CSS and JavaScript. It has no framework, no package manager and no build step, so it can be opened directly in a browser or deployed as static files.
+
+The page renders a responsive grid of team cards. The grid is populated by `script.js`, and each card responds to hover, focus or tap with a unique animation.
+
 ## Features
 
-- **Nine hand-drawn SVG characters**, generated from data and styled after a flat-vector avatar sheet: navy outlines, coral and mustard fills, dot eyes, an L-shaped nose and short shoulders sitting on a ground line. Each has its own hair, outfit and accessories.
-- **Face-driven animation engine.** Gaze, eyelids, brows, head tilt and mouth are animated by a small physics-style smoothing loop (`requestAnimationFrame`). Expressions blend into each other without abrupt jumps.
-- **Morphing mouth.** One parametric path morphs between flat, smile, smirk, frown, open "o", grin and tongue-out. There are no cross-fades between separate drawings.
-- **Per-character scenes.** Props such as a laptop, canvas, chalkboard, headphones, book, plant, mug and camera spring in and out by scaling, with no opacity fades.
-- **Kai's viewfinder.** The camera frame hunts, locks onto his face, turns green, and tracks his head, then a flash sparkle fires at the shot.
-- **Accessible and responsive.** Cards are keyboard-focusable. Touch devices toggle on tap. `prefers-reduced-motion` is respected. Light and dark themes are supported, and the layout is a responsive grid with safe-area insets.
+- **Nine individually animated avatars**, each with its own animation.
+- **Hover and tap interaction**, with a single interaction model for desktop and touch devices.
+- **Responsive layout** that adapts to phones, tablets and desktops, including devices with display cutouts (`viewport-fit=cover`).
+- **Accessible markup**, with the grid exposed to assistive technology as a labelled "Team members" section.
+- **Zero dependencies.** The only external requests are Google Fonts (Poppins, Bricolage Grotesque and Figtree).
+- **Static hosting ready**, with nothing to compile or install.
+
+## Tech stack
+
+| Layer      | Technology                                  |
+| ---------- | ------------------------------------------- |
+| Markup     | HTML5                                       |
+| Styling    | CSS3                                        |
+| Behavior   | Vanilla JavaScript (ES6+)                   |
+| Typography | Google Fonts                                |
+| Hosting    | Vercel (static)                             |
+
+## Getting started
+
+### Prerequisites
+
+A modern web browser. Python 3 or any other static file server is optional.
+
+### Run locally
+
+```bash
+git clone https://github.com/mahdipuya/interactive-avatars.git
+cd interactive-avatars
+```
+
+Then either open `index.html` directly in your browser, or serve the folder:
+
+```bash
+python3 -m http.server 8000
+```
+
+and visit <http://localhost:8000>.
 
 ## Project structure
 
 ```
-team-site/
-├── index.html   # Page shell: header and an empty grid the script fills in
-├── styles.css   # Layout, theming, prop/scene animations
-├── script.js    # Character data, SVG builders and the facial animation engine
+interactive-avatars/
+├── index.html            # Page shell: header and the empty grid that script.js fills
+├── styles.css            # Layout, theming and animation styles
+├── script.js             # Team data, avatar rendering and interaction logic
+├── Lineup in Motion.html # Secondary page (work in progress)
 └── README.md
 ```
 
-## Getting started
+## Usage
 
-No installation is needed.
-
-1. Download or clone the folder.
-2. Open `index.html` in any modern browser.
-
-Or serve it locally if you prefer:
-
-```bash
-cd team-site
-python3 -m http.server 8000
-# then visit http://localhost:8000
-```
-
-## How it works
-
-### 1. Characters are data
-
-Every teammate is one object in the `TEAM` array in `script.js`:
-
-| Field | Purpose |
-|---|---|
-| `n`, `r`, `b` | Name, role label, one-line blurb shown on the card |
-| `t` | Pastel background color of the card's stage |
-| `bk`, `fr` | SVG for the hair behind the head (`bk`) and in front of it (`fr`) |
-| `hx` | Extra head accessories, such as headphones |
-| `nk` | Art drawn behind the neck, such as a hood |
-| `ch` | `1` adds the pink cheek blush |
-| `sh` | `1` adds the soft pink chin shadow on the neck |
-| `body` | Shoulders and clothing |
-| `bg`, `pr` | Scene elements drawn behind (`bg`) and in front of (`pr`) the character |
-| `gl` | Optional soft screen-glow overlay on the face |
-| `beard` | `1` places the mouth lower and draws it in white |
-| `fx` | The expression script (see below) |
-
-`face()` assembles these into one SVG per card. Eyebrows are not part of the resting look; they grow in while a face is animating, so the idle avatars stay true to the flat style. Small helpers (`P`, `L`, `C`, `T`, `IT`, `dr`) keep the drawing code compact.
-
-### 2. The facial animation engine
-
-Each card gets a `Face` instance. Instead of hand-written keyframes, the face has a set of numeric parameters (defined in `N`):
-
-| Parameter | Controls |
-|---|---|
-| `gx`, `gy` | Gaze direction |
-| `eL`, `eR` | Left and right eye openness (1 is normal, about 0.1 is closed, above 1 is wide) |
-| `bLy`, `bLr`, `bRy`, `bRr` | Brow height and rotation |
-| `hr`, `hy` | Head rotation and vertical offset |
-| `w`, `sm`, `o`, `sk`, `tg` | Mouth width, smile curvature, openness, skew (smirk) and tongue |
-| `px`, `py` | Optional prop offset (Ivy's butterfly) |
-| `lk` | Camera-frame lock amount (Kai) |
-
-While a card is active, the engine steps through the character's expression script. Each frame, every parameter eases toward the current target using exponential smoothing, which gives natural motion. When you stop hovering, all targets return to neutral, so the face eases back instead of snapping.
-
-### 3. Expression scripts
-
-`fx` holds a smoothing speed `k` and a list `s` of `[pose, holdMs]` pairs. Poses are plain objects that override the neutral values. The mouth presets live in `M`.
-
-```js
-fx: {
-  k: 6,                       // how snappy the face moves (higher is faster)
-  s: [
-    [{ ...M.flat,  eL: .7, gx: -3, gy: 5, bLr: 7 }, 1500],  // focused
-    [{ ...M.grin,  eL: 1.2, bLy: -5, hy: -2 },     1300],   // eureka!
-  ]
-}
-```
-
-### 4. Scene and prop animation
-
-Props and symbols spring in and out using CSS `transform: scale()` transitions (`.it`, `.rise`, `.pop`, `.grow`). Loops such as drawing strokes, steam wisps, page flips and the LEVEL UP text are CSS keyframes in `styles.css`. All of them are gated behind the `.on` class that the script toggles on hover, focus or tap.
+1. Open the page.
+2. Hover over any portrait (desktop) or tap it (touch devices).
+3. Watch that person's avatar animate.
 
 ## Customization
 
-**Change names, roles and blurbs.** Edit `n`, `r` and `b` for each entry in `TEAM`.
+- **Team members:** edit the team data in `script.js` to change names, roles and avatar details.
+- **Look and feel:** adjust layout, colors and animation styles in `styles.css`.
+- **Page copy:** update the heading, eyebrow text and intro paragraph in `index.html`.
 
-**Tune an expression.** Adjust the numbers in that character's `fx.s` poses, or change the hold time (the second value in each pair).
+## Deployment
 
-**Add a new teammate.**
-
-1. Add a new object to `TEAM` with `n`, `r`, `b`, `t`, `bk`/`fr`, `body`, `pr` and an `fx` script.
-2. Reuse the helpers and mouth presets (`M`) for consistent style.
-3. Optionally add scene CSS under `.on` in `styles.css`.
-
-**Change the theme.** The color tokens are CSS variables at the top of `styles.css` (`--bg`, `--card`, `--tx`, `--mu`, `--bd`). A dark variant is included and follows the system setting.
-
-**Change the grid.** Edit the `.grid` rule in `styles.css`. It is currently `repeat(auto-fit, minmax(270px, 1fr))`.
+Because the project is fully static, it can be hosted anywhere that serves files: Vercel, Netlify, GitHub Pages, Cloudflare Pages or any plain web server. For Vercel, import the repository and deploy with the default settings. No build command or output directory is required.
 
 ## Browser support
 
-Current versions of Chrome, Edge, Firefox and Safari. The page uses SVG, CSS custom properties, `transform-box`, `requestAnimationFrame` and the Web Animations API (for Kai's flash).
+Current versions of Chrome, Edge, Firefox and Safari.
+
+## Contributing
+
+Issues and pull requests are welcome. For larger changes, please open an issue first to discuss what you would like to change.
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/your-feature`)
+3. Commit your changes (`git commit -m "Add your feature"`)
+4. Push the branch (`git push origin feature/your-feature`)
+5. Open a pull request
 
 ## License
 
-Add the license of your choice here (for example MIT).
+[Add your chosen license here, for example MIT, and include a `LICENSE` file in the repository.]
+
+## Author
+
+Built by [mahdipuya](https://github.com/mahdipuya).
