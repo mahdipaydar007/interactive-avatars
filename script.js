@@ -1,911 +1,161 @@
-const ink = "#1f2340",
-  K = "#f08c88",
-  Y = "#f5b95f",
-  G = "#6fc3b2",
-  B = "#7aa7e8",
-  W = "#fff",
-  S2 = "#2b3060";
-const st = `stroke="${ink}" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"`;
-const P = (d, f, x = "") => `<path d="${d}" fill="${f}" ${st} ${x}/>`;
-const L = (d, c = ink, w = 3, x = "") =>
-  `<path d="${d}" fill="none" stroke="${c}" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round" ${x}/>`;
-const C = (x, y, r, f, x2 = "") =>
-  `<circle cx="${x}" cy="${y}" r="${r}" fill="${f}" ${st} ${x2}/>`;
-const IT = (s, d = 0) => `<g class="it" style="--d:${d}s">${s}</g>`;
-const T = (x, y, t, c, d, s = 24) =>
-  IT(
-    `<text class="fl" x="${x}" y="${y}" fill="${c}" font-size="${s}" font-weight="700" text-anchor="middle" style="animation-delay:${d}s">${t}</text>`,
-    d / 2,
-  );
-const dr = (d, c, dl, w = 5) =>
-  L(d, c, w, `pathLength="100" class="dr" style="animation-delay:${dl}s"`);
-const BD =
-  "M50,248 V222 Q50,198 84,190 L106,184 Q120,196 134,184 L156,190 Q190,198 190,222 V248Z";
-const glasses = (c) =>
-  `<circle cx="86" cy="90" r="13.5" fill="none" stroke="${c}" stroke-width="3.2"/><circle cx="114" cy="90" r="13.5" fill="none" stroke="${c}" stroke-width="3.2"/>` +
-  L("M99,90 H101", c, 3);
-const glow = (c) =>
-  `<ellipse class="scr" cx="100" cy="88" rx="34" ry="42" fill="${c}"/>`;
+(function () {
+  var INK = "#232649", PINK = "#f4958f", CHEEK = "#f9bcb6", YEL = "#f8c24d", SKIN = "#ffffff", BLUE = "#5b6cf0";
+  var BODY = "M24 180 C24 152 44 142 78 138 L122 138 C156 142 176 152 176 180Z";
+  var NECK = '<path d="M86 114 L86 142 Q100 154 114 142 L114 114Z" fill="' + SKIN + '" class="o"/>';
+  var PATCH = '<path d="M84 134 L116 134 L116 142 Q100 158 84 142Z" fill="' + SKIN + '"/><path d="M83 140 Q100 158 117 140" fill="none" class="o"/>';
+  var p = function (d, fill, extra) { return '<path d="' + d + '" fill="' + fill + '" class="o"' + (extra || '') + '/>'; };
+  var circ = function (x, y, r, fill, extra) { return '<circle cx="' + x + '" cy="' + y + '" r="' + r + '" fill="' + fill + '" class="o"' + (extra || '') + '/>'; };
+  var dl = function (s) { return ' style="animation-delay:' + s + 's"'; };
 
-/* ---- facial expression engine ---- */
-const N = {
-  gx: 0,
-  gy: 0,
-  eL: 1,
-  eR: 1,
-  bLy: 0,
-  bLr: 0,
-  bRy: 0,
-  bRr: 0,
-  hr: 0,
-  hy: 0,
-  w: 8,
-  sm: 1,
-  o: 0,
-  sk: 0,
-  tg: 0,
-  px: 0,
-  py: 0,
-  lk: 0,
-};
-const M = {
-  flat: { w: 6, sm: 0 },
-  smile: { w: 8, sm: 1 },
-  smirk: { w: 7, sm: 0.5, sk: 4 },
-  frown: { w: 7, sm: -1.2 },
-  hmm: { w: 6, sm: -0.3, sk: 3 },
-  grin: { w: 10, sm: 1.4, o: 10 },
-  o: { w: 4.5, sm: 0, o: 12 },
-  sing: { w: 6, sm: 0.4, o: 9 },
-  tongue: { w: 9, sm: 1.2, o: 9, tg: 1 },
-};
-const mouthD = (w, sm, o, sk) => {
-  const k = w * 0.55,
-    Ly = 110 + sk / 2,
-    Ry = 110 - sk / 2,
-    uy = 110 + sm * 5,
-    ly = uy + o * 1.35;
-  return [
-    `M${100 - w},${Ly} C${100 - w + k},${uy} ${100 + w - k},${uy} ${100 + w},${Ry} C${100 + w - k},${ly} ${100 - w + k},${ly} ${100 - w},${Ly}Z`,
-    ly,
+  /* ---------- bodies ---------- */
+  var bodies = {
+    tee: function (c) { return NECK + p(BODY, c) + PATCH + '<path d="M80 139 Q100 160 120 139" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round"/>'; },
+    jacket: function (outer, inner) { return NECK + p(BODY, outer) + '<path d="M82 139 Q100 156 118 139 L112 180 L88 180Z" fill="' + inner + '" class="o"/>' + '<path d="M84 134 L116 134 L116 142 Q100 156 84 142Z" fill="' + SKIN + '"/><path d="M83 140 Q100 156 117 140" fill="none" class="o"/>'; },
+    stripes: function (i) { var s = '';[146, 157, 168].forEach(function (y) { s += '<rect x="20" y="' + y + '" width="160" height="5.5" fill="' + INK + '"/>'; }); return NECK + '<defs><clipPath id="cp' + i + '"><path d="' + BODY + '"/></clipPath></defs>' + p(BODY, '#fff') + '<g clip-path="url(#cp' + i + ')">' + s + '</g><path d="' + BODY + '" fill="none" class="o"/>' + PATCH; },
+    hoodie: function (c) { return NECK + p(BODY, c) + p("M70 138 Q100 176 130 138 Q136 152 126 160 Q100 180 74 160 Q64 152 70 138Z", c) + '<path d="M84 134 L116 134 L116 142 Q100 158 84 142Z" fill="' + SKIN + '"/><path d="M80 141 Q100 160 120 141" fill="none" class="o"/><path d="M91 160 L90 176 M109 160 L110 176" class="thin"/>'; },
+    polo: function (c) { return NECK + p(BODY, c) + PATCH + p("M80 139 L98 154 L82 162 L68 148Z", c) + p("M120 139 L102 154 L118 162 L132 148Z", c) + '<path d="M100 156 L100 180" class="thin"/><circle cx="100" cy="166" r="1.8" fill="' + INK + '"/>'; },
+    tank: function (c) { return NECK + p(BODY, SKIN) + '<path d="M84 134 L116 134 L116 142 Q100 158 84 142Z" fill="' + SKIN + '"/>' + p("M64 180 L70 152 L84 140 Q100 166 116 140 L130 152 L136 180Z", c); },
+    vneck: function (c) { return NECK + p(BODY, c) + '<path d="M82 136 L118 136 L100 164Z" fill="' + SKIN + '"/><path d="M80 139 L100 164 L120 139" fill="none" class="o"/>'; },
+    flower: function () {
+      var petals = '';
+      for (var a = 0; a < 5; a++) { var r = a * 72 * Math.PI / 180; petals += circ((Math.sin(r) * 6).toFixed(1), (-Math.cos(r) * 6).toFixed(1), 4.4, PINK, ' stroke-width="2"'); }
+      return bodies.jacket('#2a2d4f', '#ffffff') + '<g transform="translate(100 160)"><g class="fl">' + petals + '<circle r="3" fill="#fff"/></g></g>';
+    }
+  };
+
+  /* ---------- face ---------- */
+  var face = function (o) {
+    o = o || {};
+    var s = circ(66, 92, 7, SKIN) + circ(134, 92, 7, SKIN);
+    s += p("M66 84 C66 50 134 50 134 84 C134 120 118 132 100 132 C82 132 66 120 66 84Z", SKIN);
+    if (o.underHair) s += '<path d="M66 84 C64 52 136 52 134 84 C126 70 112 64 100 64 C88 64 74 70 66 84Z" fill="' + INK + '" class="o"/>';
+    if (o.cheeks) s += '<circle cx="79" cy="109" r="6.5" fill="' + CHEEK + '"/><circle cx="121" cy="109" r="6.5" fill="' + CHEEK + '"/>';
+    if (!o.noBrows) s += '<path d="M78 86 Q85 82 92 86 M108 86 Q115 82 122 86" class="thin"/>';
+    s += '<g class="look"><g class="blink"><ellipse cx="85" cy="96" rx="2.8" ry="3.2" fill="' + INK + '"/><ellipse cx="115" cy="96" rx="2.8" ry="3.2" fill="' + INK + '"/></g></g>';
+    s += '<path d="M100 100 L97.5 108 Q100 110 103 108" class="thin" stroke-width="2"/>';
+    if (!o.beard) s += '<path d="' + (o.mouth || "M92 118 Q100 124 108 118") + '" class="thin"/>';
+    return s;
+  };
+  var lenses = '<circle cx="84" cy="96" r="11.5" fill="rgba(255,255,255,.35)" stroke="#f08a86" stroke-width="3"/><circle cx="116" cy="96" r="11.5" fill="rgba(255,255,255,.35)" stroke="#f08a86" stroke-width="3"/><path d="M95.5 95 L104.5 95" stroke="#f08a86" stroke-width="3" fill="none" stroke-linecap="round"/>';
+  var glassesPlain = function () { return '<g>' + lenses + '</g>'; };
+  var glassesShine = function () {
+    return '<g class="gl">' + lenses + '<defs><clipPath id="lensL"><circle cx="84" cy="96" r="10"/></clipPath><clipPath id="lensR"><circle cx="116" cy="96" r="10"/></clipPath></defs>' +
+      '<g clip-path="url(#lensL)"><g class="shine"><polygon points="79,84 86,84 92,108 85,108" fill="#fff" opacity=".9"/></g></g>' +
+      '<g clip-path="url(#lensR)"><g class="shine"><polygon points="111,84 118,84 124,108 117,108" fill="#fff" opacity=".9"/></g></g></g>';
+  };
+  var beard = function () { return p("M66 98 C66 142 134 142 134 98 C128 114 116 108 100 112 C84 108 72 114 66 98Z", INK) + '<path d="M92 119 Q100 125 108 119" stroke="#fff" stroke-width="2.6" fill="none" stroke-linecap="round"/>'; };
+  var curls = function (pts, r, c) { return pts.map(function (q, i) { return '<circle class="curl o" cx="' + q[0] + '" cy="' + q[1] + '" r="' + r + '" fill="' + c + '"' + dl((i * 0.09).toFixed(2)) + '/>'; }).join(''); };
+  var star = function (x, y, c, d) { return '<g transform="translate(' + x + ' ' + y + ')"><path class="spark o" d="M0 -9 Q1.5 -1.5 9 0 Q1.5 1.5 0 9 Q-1.5 1.5 -9 0 Q-1.5 -1.5 0 -9Z" fill="' + c + '"' + dl(d) + '/></g>'; };
+  var glyph = function (t, x, y, d) { return '<text class="glyph" x="' + x + '" y="' + y + '"' + dl(d) + '>' + t + '</text>'; };
+  var noteShape = function (x, y, d) { return '<g transform="translate(' + x + ' ' + y + ')"><g class="note"' + dl(d) + '><ellipse cx="0" cy="0" rx="4.8" ry="3.5" transform="rotate(-20)" fill="' + INK + '"/><path d="M4 -1.5 L4 -17 Q10 -14 10.5 -8" fill="none" stroke="' + INK + '" stroke-width="2.4" stroke-linecap="round"/></g></g>'; };
+
+  /* ---------- scenes (extra effects drawn in front of the figure) ---------- */
+  var fxIdea = (function () {
+    var rays = '';
+    [-180, -135, -90, -45, 0].forEach(function (a) {
+      var r = a * Math.PI / 180;
+      rays += '<line class="ray" x1="' + (Math.cos(r) * 13).toFixed(1) + '" y1="' + (Math.sin(r) * 13).toFixed(1) + '" x2="' + (Math.cos(r) * 18).toFixed(1) + '" y2="' + (Math.sin(r) * 18).toFixed(1) + '" stroke="' + INK + '" stroke-width="2.4" stroke-linecap="round"/>';
+    });
+    return '<g transform="translate(100 26)"><g class="bulb">' + rays + '<circle cx="0" cy="0" r="8.5" fill="' + YEL + '" class="o"/><rect x="-4.5" y="8" width="9" height="5.5" rx="1.5" fill="#fff" class="o"/></g></g>';
+  })();
+
+  var people = [
+    {
+      n: "Markus White", r: "Creative director", tint: "#fde1de", cheeks: 1,
+      body: bodies.tee("#272a4d"),
+      back: p("M60 92 C56 44 144 44 140 92 L140 132 Q140 138 134 138 L120 138 L120 100 L80 100 L80 138 L66 138 Q60 138 60 132Z", PINK),
+      front: p("M64 88 C60 46 140 46 136 88 C126 80 118 66 112 60 C104 72 84 80 64 88Z", PINK),
+      fx: star(34, 52, YEL, 0) + star(164, 46, PINK, .5) + star(158, 112, YEL, 1) + star(40, 120, PINK, .3) + star(110, 22, YEL, .8)
+    },
+    {
+      n: "Tomas Reyes", r: "Engineering lead", tint: "#dfe3fb", beard: 1,
+      body: bodies.jacket("#272a4d", "#f4958f"),
+      back: "",
+      front: p("M64 84 C54 48 84 34 108 38 C132 34 146 54 136 84 C132 68 122 60 106 60 C90 58 70 66 64 84Z", INK) + beard(),
+      fx: glyph("&lt;/&gt;", 22, 76, 0) + glyph("{ }", 152, 64, .5) + glyph("01", 156, 100, 1) + glyph("=&gt;", 24, 108, .3) +
+        '<g class="lap"><rect x="54" y="138" width="92" height="42" rx="5" fill="#dfe3fb" class="o"/><circle cx="100" cy="159" r="5.5" fill="' + PINK + '" class="o"/></g>'
+    },
+    {
+      n: "Emily Smith", r: "Illustrator", tint: "#fdeec2",
+      body: bodies.stripes(3),
+      back: curls([[66, 66], [82, 48], [102, 43], [122, 49], [137, 66], [144, 86], [56, 86]], 17, YEL),
+      front: curls([[80, 65], [100, 59], [120, 65]], 13, YEL),
+      fx: '<path class="sq" d="M16 34 q10 -16 20 0 t20 0 t20 0" stroke="' + PINK + '" stroke-width="5"/>' +
+        '<circle class="splat" cx="164" cy="42" r="6" fill="' + PINK + '"' + dl(.1) + '/><circle class="splat" cx="150" cy="62" r="4" fill="' + BLUE + '"' + dl(.25) + '/><circle class="splat" cx="170" cy="76" r="3.5" fill="' + YEL + '"' + dl(.4) + '/><circle class="splat" cx="36" cy="132" r="5" fill="' + BLUE + '"' + dl(.55) + '/>'
+    },
+    {
+      n: "Lena Hartmann", r: "Product designer", tint: "#fde1de", cheeks: 1, mouth: "M93 118 Q100 122 107 118",
+      body: bodies.polo("#f4958f"),
+      back: p("M64 90 C60 44 140 44 136 90 C141 122 139 150 132 162 L118 162 L118 100 L82 100 L82 162 L68 162 C61 150 59 122 64 90Z", INK),
+      front: p("M64 90 C58 48 142 48 136 90 C128 76 112 64 100 56 C88 66 72 78 64 90Z", INK),
+      fx: '<g class="sel"><rect x="54" y="44" width="92" height="96" fill="none" stroke="' + BLUE + '" stroke-width="2"/>' +
+        [[54, 44], [146, 44], [54, 140], [146, 140], [100, 44], [100, 140], [54, 92], [146, 92]].map(function (c) { return '<rect x="' + (c[0] - 4) + '" y="' + (c[1] - 4) + '" width="8" height="8" fill="#fff" stroke="' + BLUE + '" stroke-width="2"/>'; }).join('') +
+        '<rect x="70" y="20" width="60" height="16" rx="4" fill="' + BLUE + '"/><text x="100" y="31.5" text-anchor="middle" font-size="9.5" font-weight="700" fill="#fff" font-family="ui-monospace, Menlo, Consolas, monospace">92 × 96</text></g>' +
+        '<g class="cur"><path d="M0 0 L0 15 L4.5 11.5 L7.5 18 L10 17 L7 10.5 L12.5 10.5Z" fill="' + INK + '" stroke="#fff" stroke-width="1.5" stroke-linejoin="round"/></g>'
+    },
+    {
+      n: "Eathen Taylor", r: "Front-end engineer", tint: "#fdeec2", noBrows: 1, underHair: 1,
+      body: bodies.hoodie(YEL),
+      back: "",
+      front: '<g class="cap">' + p("M63 80 C60 40 140 40 137 80 Q100 71 63 80Z", YEL) + '<circle cx="100" cy="43" r="3" fill="' + INK + '"/>' + p("M58 80 Q100 68 142 80 L142 87 Q100 78 58 87Z", YEL) + '</g>',
+      fx: '<circle class="ring" cx="100" cy="64" r="5" fill="none" stroke="' + INK + '" stroke-width="2.5"/>'
+    },
+    {
+      n: "Jessy Wiliams", r: "Researcher", tint: "#dfe3fb", cheeks: 1,
+      body: bodies.tank(PINK),
+      back: p("M60 92 C56 44 144 44 140 92 L140 122 Q140 128 134 128 L122 128 L122 100 L78 100 L78 128 L66 128 Q60 128 60 122Z", INK),
+      front: p("M63 86 C58 46 142 46 137 86 Q120 72 100 66 Q80 72 63 86Z", INK) + glassesShine(),
+      fx: fxIdea
+    },
+    {
+      n: "Sofia Lindqvist", r: "Brand strategist", tint: "#fde1de", cheeks: 1, noBrows: 1,
+      body: bodies.flower(),
+      back: p("M62 90 C58 44 142 44 138 90 L144 172 L120 172 L120 112 L80 112 L80 172 L56 172Z", PINK),
+      front: '<g class="hat">' + p("M62 80 C58 34 142 34 138 80 Q100 70 62 80Z", YEL) + p("M55 82 Q100 68 145 82 Q148 90 140 90 Q100 79 60 90 Q52 90 55 82Z", YEL) + '</g>',
+      fx: [0, .8, 1.6].map(function (d) { return '<g transform="translate(100 160)"><ellipse class="petal" cx="0" cy="0" rx="4" ry="2.4" fill="' + PINK + '" stroke="' + INK + '" stroke-width="1.6"' + dl(d) + '/></g>'; }).join('')
+    },
+    {
+      n: "Marcus Bell", r: "Backend engineer", tint: "#fdeec2", beard: 1,
+      body: bodies.tee("#272a4d"),
+      back: "",
+      front: p("M64 78 C62 36 138 36 136 78Z", INK) + circ(100, 33, 6, "#343863") + p("M61 80 Q61 67 72 67 L128 67 Q139 67 139 80 Q139 89 130 89 L70 89 Q61 89 61 80Z", "#343863") + beard(),
+      fx: noteShape(160, 92, 0) + noteShape(150, 60, .9) +
+        [[14, 18], [24, 30], [34, 14], [44, 24]].map(function (b, i) { return '<rect class="bar" x="' + (b[0] + 4) + '" y="' + (122 - b[1]) + '" width="7" height="' + b[1] + '" fill="' + PINK + '" stroke="' + INK + '" stroke-width="2"' + dl((i * .13).toFixed(2)) + '/>'; }).join('')
+    },
+    {
+      n: "Harry Evans", r: "Motion designer", tint: "#dfe3fb",
+      body: bodies.vneck(YEL),
+      back: "",
+      front: p("M62 92 C52 44 90 34 108 38 C136 36 148 64 138 92 C134 72 124 64 108 62 C88 62 68 72 62 92Z", INK) + glassesPlain(),
+      fx: [[34, 108, 34], [46, 118, 24], [154, 108, 34], [166, 118, 24]].map(function (l, i) { return '<line class="spd" x1="' + l[0] + '" y1="' + l[1] + '" x2="' + l[0] + '" y2="' + (l[1] + l[2]) + '" stroke="' + INK + '" stroke-width="3" stroke-linecap="round"' + dl((i * .03).toFixed(2)) + '/>'; }).join('') +
+        '<g class="curve"><rect x="14" y="14" width="42" height="42" rx="6" fill="#fff" stroke="' + INK + '" stroke-width="2.2"/><path d="M20 50 C34 50 30 20 50 20" stroke="' + BLUE + '" stroke-width="3" class="cv"/><circle cx="20" cy="50" r="2.6" fill="' + INK + '"/><circle cx="50" cy="20" r="2.6" fill="' + INK + '"/></g>'
+    }
   ];
-};
-const SQ = { eL: 0.6, eR: 0.6 },
-  CL = { eL: 0.08, eR: 0.08 };
 
-function Face(card, fx) {
-  const $ = (s) => card.querySelector(s),
-    gz = $(".gz"),
-    eL = $(".eyL"),
-    eR = $(".eyR"),
-    bl = $(".bl2"),
-    br = $(".br2"),
-    hd = card.querySelectorAll(".head"),
-    mp = $(".mp"),
-    tg = $(".tgm"),
-    mv = $(".mv"),
-    fl = $(".flash"),
-    lkEl = $(".lock");
-  let cur = { ...N },
-    tgt = { ...N },
-    idx = -1,
-    hold = 0,
-    on = false,
-    raf = 0,
-    last = 0,
-    amp = 0;
-  const f = (n) => n.toFixed(2);
-  const eye = (e, cx, s) =>
-    e.setAttribute(
-      "transform",
-      `translate(${cx} 90) scale(1 ${f(Math.max(0.05, s))}) translate(${-cx} -90)`,
-    );
-  const draw = (t) => {
-    const c = cur;
-    gz.setAttribute("transform", `translate(${f(c.gx)} ${f(c.gy)})`);
-    eye(eL, 87, c.eL);
-    eye(eR, 113, c.eR);
-    const bs = f(Math.max(0.001, Math.min(1, amp * 1.8)));
-    bl.setAttribute(
-      "transform",
-      `translate(0 ${f(c.bLy)}) translate(87 74) rotate(${f(c.bLr)}) scale(${bs}) translate(-87 -74)`,
-    );
-    br.setAttribute(
-      "transform",
-      `translate(0 ${f(c.bRy)}) translate(113 74) rotate(${f(c.bRr)}) scale(${bs}) translate(-113 -74)`,
-    );
-    const hy = c.hy + Math.sin(t / 650) * 1.4 * amp;
-    hd.forEach((h) =>
-      h.setAttribute(
-        "transform",
-        `translate(0 ${f(hy)}) rotate(${f(c.hr)} 120 190)`,
-      ),
-    );
-    const [d, ly] = mouthD(c.w, c.sm, c.o, c.sk);
-    mp.setAttribute("d", d);
-    mp.setAttribute("fill-opacity", f(Math.min(1, c.o / 3)));
-    tg.setAttribute(
-      "transform",
-      `translate(100 ${f(110 + 0.75 * (ly - 110) - 3)}) scale(${f(Math.max(0, c.tg))})`,
-    );
-    if (mv) mv.setAttribute("transform", `translate(${f(c.px)} ${f(c.py)})`);
-    if (lkEl) {
-      const s = 1.9 - 0.9 * c.lk,
-        m = Math.max(0, Math.min(1, (c.lk - 0.6) / 0.4)),
-        rgb = [242, 154, 154].map((a, i) =>
-          Math.round(a + ([111, 195, 178][i] - a) * m),
-        );
-      lkEl.setAttribute(
-        "transform",
-        `translate(0 ${f(hy * c.lk)}) rotate(${f(c.hr * c.lk)} 120 190) translate(120 116) scale(${f(s)}) translate(-120 -116)`,
-      );
-      lkEl.style.color = `rgb(${rgb})`;
-    }
-  };
-  const step = (t) => {
-    const dt = Math.min(0.05, (t - last) / 1000 || 0);
-    last = t;
-    const k = 1 - Math.exp(-dt * fx.k);
-    let moving = false;
-    for (const key in N) {
-      const d = tgt[key] - cur[key];
-      cur[key] += d * k;
-      if (Math.abs(d) > 0.01) moving = true;
-    }
-    amp += ((on ? 1 : 0) - amp) * (1 - Math.exp(-dt * 3));
-    if (on) {
-      hold -= dt * 1000;
-      if (hold <= 0) {
-        idx = (idx + 1) % fx.s.length;
-        const [p, h] = fx.s[idx];
-        tgt = { ...N, ...p };
-        hold = h;
-        if (p.hook && fl)
-          fl.animate(
-            [
-              { transform: "scale(0) rotate(0deg)" },
-              { transform: "scale(1.3) rotate(25deg)", offset: 0.3 },
-              { transform: "scale(0) rotate(60deg)" },
-            ],
-            { duration: 520, easing: "ease-out" },
-          );
-      }
-    }
-    draw(t);
-    raf = on || moving || amp > 0.01 ? requestAnimationFrame(step) : 0;
-  };
-  draw(0);
-  return {
-    start() {
-      on = true;
-      idx = -1;
-      hold = 0;
-      if (!raf) {
-        last = performance.now();
-        raf = requestAnimationFrame(step);
-      }
-    },
-    stop() {
-      on = false;
-      tgt = { ...N };
-    },
-  };
-}
+  /* ---------- build ---------- */
+  var grid = document.getElementById("grid");
+  var cards = [];
+  people.forEach(function (m, i) {
+    var card = document.createElement("article");
+    card.className = "card a" + (i + 1);
+    card.tabIndex = 0;
+    card.setAttribute("aria-label", m.n + ", " + m.r);
+    card.style.setProperty("--tint", m.tint);
+    var inner = '<g class="all"><g class="head"><g class="hairb">' + m.back + '</g></g><g class="bd">' + m.body + '</g><g class="head">' + face(m) + m.front + '</g></g>' + (m.fx || '');
+    card.innerHTML =
+      '<div class="stage"><div class="shadow"></div><svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">' + inner + '</svg></div>' +
+      '<div class="meta"><h3>' + m.n + '</h3><p>' + m.r + '</p></div>';
+    grid.appendChild(card);
+    cards.push(card);
 
-/* ---- team: each fx.s entry is [pose, hold ms]; k = how snappy the face moves ---- */
-const TEAM = [
-  {
-    n: "Mia",
-    r: "Creative Artist",
-    b: "Squints, gasps, and grins at her own canvas.",
-    t: "#fde2e2",
-    fx: {
-      k: 5,
-      s: [
-        [
-          {
-            ...M.flat,
-            ...SQ,
-            gx: 5,
-            gy: -1,
-            bLy: 2,
-            bLr: 8,
-            bRy: 2,
-            bRr: -8,
-            hr: -4,
-          },
-          1500,
-        ],
-        [
-          {
-            ...M.grin,
-            gx: 6,
-            gy: 1,
-            eL: 1.15,
-            eR: 1.15,
-            bLy: -4,
-            bRy: -4,
-            hy: -2,
-          },
-          1300,
-        ],
-        [
-          {
-            ...M.o,
-            gx: -3,
-            gy: 3,
-            bLy: -4,
-            bLr: -6,
-            bRy: -4,
-            bRr: 6,
-            hr: 3,
-            hy: 2,
-          },
-          1200,
-        ],
-        [{ ...M.smirk, gx: 5, eL: 0.8, eR: 0.8, hr: -3, hy: -1 }, 1300],
-      ],
-    },
-    bk: P(
-      "M56,98 Q54,36 100,32 Q146,36 144,98 L144,138 Q144,146 136,146 L64,146 Q56,146 56,138Z",
-      K,
-    ),
-    fr: P(
-      "M63,90 Q58,46 100,40 Q142,46 137,90 Q136,72 126,62 Q118,70 106,62 Q94,72 74,74 Q66,78 63,90Z",
-      K,
-    ),
-    body:
-      P(BD, ink) +
-      L("M92,189 Q120,216 148,189", W, 11) +
-      L("M103,187 Q120,201 137,187", ink, 3),
-    ch: 1,
-    bg: IT(
-      L("M172,140 L164,214 M218,140 L226,214", ink, 4) +
-        `<rect x="152" y="34" width="82" height="106" rx="4" fill="#fff" ${st}/>` +
-        dr("M184,66 a9,9 0 1,0 18,0 a9,9 0 1,0 -18,0", Y, 0) +
-        dr("M160,124 L180,98 L196,116 L214,92 L228,124", G, 1.2) +
-        dr("M160,132 Q175,124 190,132 T224,132", B, 2.4, 4),
-    ),
-    pr:
-      T(30, 110, "●", K, 0, 16) +
-      T(46, 150, "●", Y, 1.2, 12) +
-      T(26, 190, "●", B, 2, 14),
-  },
-  {
-    n: "Leo",
-    r: "Code Wizard",
-    b: "Frowns, has a eureka moment, then smirks.",
-    t: "#dfeee9",
-    fx: {
-      k: 6,
-      s: [
-        [
-          {
-            ...M.flat,
-            eL: 0.7,
-            eR: 0.7,
-            gx: -3,
-            gy: 5,
-            bLy: 2,
-            bLr: 7,
-            bRy: 2,
-            bRr: -7,
-            hr: 2,
-            hy: 4,
-          },
-          1500,
-        ],
-        [
-          {
-            ...M.flat,
-            eL: 0.7,
-            eR: 0.7,
-            gx: 4,
-            gy: 5,
-            bLy: 2,
-            bLr: 7,
-            bRy: 2,
-            bRr: -7,
-            hr: 2,
-            hy: 4,
-          },
-          900,
-        ],
-        [
-          {
-            ...M.grin,
-            gx: 4,
-            gy: -3,
-            eL: 1.2,
-            eR: 1.2,
-            bLy: -5,
-            bRy: -5,
-            hr: -3,
-            hy: -2,
-          },
-          1300,
-        ],
-        [
-          {
-            ...M.frown,
-            gx: -5,
-            gy: 4,
-            eL: 0.9,
-            eR: 0.9,
-            bLy: -5,
-            bLr: -8,
-            bRy: 2,
-            bRr: -8,
-            hr: 3,
-            hy: 2,
-          },
-          1400,
-        ],
-        [
-          {
-            ...M.smirk,
-            gx: 3,
-            gy: 5,
-            eL: 0.8,
-            eR: 0.8,
-            bRy: -2,
-            hr: -1,
-            hy: 3,
-          },
-          1300,
-        ],
-      ],
-    },
-    gl: glow(G),
-    beard: 1,
-    fr:
-      P(
-        "M62,90 Q58,52 74,42 Q94,30 120,28 Q142,26 144,42 Q146,58 138,72 Q137,80 137,92 Q136,68 120,63 Q100,59 80,66 Q68,72 66,94Z",
-        ink,
-      ) +
-      P(
-        "M65,94 Q62,128 84,139 Q100,147 116,139 Q138,128 135,94 Q131,110 122,113 Q112,106 100,108 Q88,106 78,113 Q69,110 65,94Z",
-        ink,
-      ),
-    body:
-      P(BD, ink) +
-      P("M96,184 Q120,198 144,184 V248 H96Z", K) +
-      '<path d="M105,184 Q120,206 135,184Z" fill="#fff"/>' +
-      L("M105,184 Q120,206 135,184", ink, 2.5),
-    pr:
-      `<g class="rise">${P("M68,248 V212 Q68,206 74,206 H166 Q172,206 172,212 V248Z", "#dfe3f1")}${C(120, 226, 6, K)}</g>` +
-      T(36, 100, "&lt;/&gt;", G, 0, 20) +
-      T(206, 100, "{ }", K, 0.8, 22) +
-      T(30, 160, ";", Y, 1.5, 26) +
-      T(210, 160, "#", B, 2.2, 22),
-  },
-  {
-    n: "Ollie",
-    r: "Math Whiz",
-    b: 'Ponders, shouts "aha!", then gets puzzled again.',
-    t: "#fdf0cf",
-    fx: {
-      k: 5,
-      s: [
-        [{ ...M.smirk, gx: -4, gy: -5, bRy: -6, bRr: -6, hr: -5 }, 1500],
-        [
-          {
-            ...M.grin,
-            gx: 5,
-            gy: -4,
-            eL: 1.25,
-            eR: 1.25,
-            bLy: -5,
-            bRy: -5,
-            hr: 3,
-            hy: -3,
-          },
-          1200,
-        ],
-        [
-          {
-            ...M.frown,
-            gx: -5,
-            gy: 2,
-            eL: 0.8,
-            eR: 0.8,
-            bLy: 2,
-            bLr: 8,
-            bRy: 2,
-            bRr: -8,
-            hr: 5,
-          },
-          1400,
-        ],
-        [{ ...M.hmm, gx: 4, gy: -4, bLy: -2, bRy: -2, hr: -3 }, 1300],
-      ],
-    },
-    bk: (() => {
-      const c = [
-        [56, 64],
-        [68, 46],
-        [90, 38],
-        [112, 38],
-        [132, 46],
-        [144, 62],
-        [148, 86],
-        [144, 108],
-        [134, 124],
-        [66, 124],
-        [56, 108],
-        [52, 86],
-      ];
-      return (
-        c
-          .map(
-            ([x, y]) =>
-              `<circle cx="${x}" cy="${y}" r="15" fill="${ink}" stroke="${ink}" stroke-width="6"/>`,
-          )
-          .join("") +
-        c
-          .map(([x, y]) => `<circle cx="${x}" cy="${y}" r="15" fill="${Y}"/>`)
-          .join("")
-      );
-    })(),
-    fr: P(
-      "M64,78 Q64,54 82,52 Q90,60 100,53 Q110,60 118,52 Q136,54 136,78 Q128,64 118,68 Q108,62 98,68 Q86,62 76,70 Q68,68 64,78Z",
-      Y,
-    ),
-    body: `<clipPath id="k2"><path d="${BD}"/></clipPath>${P(BD, ink)}<g clip-path="url(#k2)">${[204, 220, 236].map((y) => L(`M30,${y} H210`, W, 6)).join("")}</g>`,
-    sh: 1,
-    bg: IT(
-      `<rect x="124" y="14" width="108" height="94" rx="6" fill="#2f5d50" stroke="#a9794a" stroke-width="5"/>` +
-        dr("M138,98 V50 L194,98Z", W, 0.2, 3) +
-        L("M138,90 H146 V98", W, 2) +
-        L("M206,98 H228 M206,98 V54", W, 2) +
-        dr("M208,96 Q217,38 226,96", Y, 1.4, 3) +
-        `<text x="178" y="38" text-anchor="middle" font-size="14" fill="#fff" font-weight="500">a²+b²=c²</text>`,
-    ),
-    pr:
-      T(34, 110, "π", K, 0, 30) +
-      T(44, 160, "∑", G, 1, 28) +
-      T(28, 206, "√", Y, 2, 26),
-  },
-  {
-    n: "Nina",
-    r: "Music Maker",
-    b: "Eyes closed, singing every note.",
-    t: "#fde2e2",
-    fx: {
-      k: 9,
-      s: [
-        [{ ...M.smile, ...CL, bLy: -3, bRy: -3, hr: 6 }, 800],
-        [{ ...M.sing, ...CL, bLy: -4, bRy: -4, hr: -6 }, 800],
-        [{ ...M.grin, bLy: -6, bRy: -6, hr: 6, hy: -2 }, 800],
-        [{ ...M.sing, ...CL, hr: -6 }, 800],
-      ],
-    },
-    bk: P(
-      "M60,96 Q52,34 100,30 Q148,34 140,96 Q146,112 138,126 Q144,140 134,154 L122,148 Q126,136 120,126 L80,126 Q74,136 78,148 L66,154 Q56,140 62,126 Q54,112 60,96Z",
-      ink,
-    ),
-    fr: P(
-      "M64,90 Q62,48 100,42 Q138,48 136,90 Q128,62 108,56 L100,48 L92,56 Q72,62 64,90Z",
-      ink,
-    ),
-    hx: IT(
-      L("M62,84 Q58,24 100,24 Q142,24 138,84", ink, 6) +
-        `<rect x="53" y="76" width="15" height="28" rx="6" fill="${B}" ${st}/><rect x="132" y="76" width="15" height="28" rx="6" fill="${B}" ${st}/>`,
-      0.1,
-    ),
-    body:
-      P(BD, K) +
-      L("M96,188 Q104,208 120,210 Q136,208 144,188", ink, 2.5) +
-      L("M106,188 Q120,204 134,188", ink, 2.5) +
-      L("M72,232 V248 M168,232 V248", ink, 2.5),
-    ch: 1,
-    pr:
-      T(30, 90, "♪", K, 0, 34) +
-      T(210, 80, "♫", G, 0.7, 34) +
-      T(24, 150, "♬", Y, 1.4, 30) +
-      T(214, 150, "♪", B, 2, 30) +
-      T(120, 40, "♫", K, 2.6, 28),
-  },
-  {
-    n: "Max",
-    r: "Game Master",
-    b: "Tongue out, rage face, victory grin.",
-    t: "#fff0c9",
-    fx: {
-      k: 9,
-      s: [
-        [
-          {
-            ...M.tongue,
-            eL: 0.8,
-            eR: 0.8,
-            gx: -4,
-            gy: 2,
-            bLy: 3,
-            bLr: 10,
-            bRy: 3,
-            bRr: -10,
-            hr: -4,
-            hy: 3,
-          },
-          1000,
-        ],
-        [
-          {
-            ...M.grin,
-            gy: -3,
-            eL: 1.2,
-            eR: 1.2,
-            bLy: -5,
-            bRy: -5,
-            hr: 3,
-            hy: -4,
-          },
-          1000,
-        ],
-        [
-          {
-            ...M.frown,
-            eL: 0.7,
-            eR: 0.7,
-            gx: 5,
-            gy: 3,
-            bLy: 3,
-            bLr: 12,
-            bRy: 3,
-            bRr: -12,
-            hr: 5,
-          },
-          900,
-        ],
-        [{ ...M.smirk, gx: -3, bLy: -3, bLr: -6, bRy: -1, hr: -3 }, 1000],
-      ],
-    },
-    gl: glow(B),
-    fr:
-      P("M64,72 Q64,34 100,32 Q136,34 136,72Z", Y) +
-      P("M60,72 Q100,58 142,66 Q148,72 142,80 Q100,72 60,82 Q54,76 60,72Z", W) +
-      P("M64,80 L67,98 L72,86Z", ink) +
-      P("M136,80 L133,98 L128,86Z", ink),
-    nk: P(
-      "M92,192 Q84,174 100,166 L108,172 L132,172 L140,166 Q156,174 148,192Z",
-      Y,
-    ),
-    hx: IT(
-      L("M60,86 Q56,26 100,24 Q144,26 140,86", ink, 7) +
-        `<rect x="52" y="74" width="16" height="30" rx="7" fill="${K}" ${st}/><rect x="132" y="74" width="16" height="30" rx="7" fill="${K}" ${st}/>` +
-        L("M56,102 Q58,124 80,126", ink, 3) +
-        C(82, 126, 4, ink),
-      0.1,
-    ),
-    body:
-      P(BD, Y) +
-      L("M100,187 Q120,214 140,187") +
-      L("M114,204 V238 M126,204 V238") +
-      L("M72,232 V248 M168,232 V248", ink, 2.5),
-    sh: 1,
-    pr:
-      IT(
-        `<rect x="70" y="8" width="100" height="14" rx="7" fill="#fff" ${st}/><rect class="xp" x="73" y="11" width="94" height="8" rx="4" fill="${G}"/>`,
-      ) +
-      `<text class="lv" x="204" y="64" fill="${Y}" stroke="${ink}" stroke-width="3" paint-order="stroke" font-size="15" font-weight="700" text-anchor="middle">LEVEL UP!</text>` +
-      T(34, 100, "+100", G, 0, 18) +
-      T(208, 130, "GG", K, 0.8, 22) +
-      T(30, 160, "★", Y, 1.5, 24) +
-      T(210, 190, "♥", K, 2.2, 22),
-  },
-  {
-    n: "Zoe",
-    r: "Bookworm",
-    b: "Reads, gasps at the plot twist, then swoons.",
-    t: "#e4ecfb",
-    fx: {
-      k: 6,
-      s: [
-        [{ ...M.smile, eL: 0.85, eR: 0.85, gx: -5, gy: 4, hy: 4 }, 1100],
-        [{ ...M.flat, eL: 0.85, eR: 0.85, gx: 5, gy: 4, hy: 4 }, 1100],
-        [{ ...M.o, eL: 1.3, eR: 1.3, gy: -2, bLy: -6, bRy: -6, hy: -3 }, 1200],
-        [
-          {
-            ...M.grin,
-            eL: 0.8,
-            eR: 0.8,
-            gx: -4,
-            gy: 4,
-            bLy: -3,
-            bRy: -3,
-            hr: -3,
-            hy: 2,
-          },
-          1400,
-        ],
-      ],
-    },
-    bk: P(
-      "M54,92 Q50,36 100,30 Q146,34 146,92 Q148,112 152,134 L142,144 L130,124 L70,124 L58,144 L48,134 Q52,112 54,92Z",
-      ink,
-    ),
-    fr:
-      P(
-        "M62,88 Q58,46 100,38 Q142,44 138,88 Q134,66 124,58 Q112,68 100,60 Q84,72 62,88Z",
-        ink,
-      ) + glasses("#ef8a8a"),
-    body:
-      P(BD, W) +
-      P(
-        "M92,184 L102,184 Q104,206 120,208 Q136,206 138,184 L148,184 Q152,200 154,214 V248 H86 V214 Q88,198 92,184Z",
-        K,
-      ),
-    sh: 1,
-    pr:
-      `<g class="rise">${P("M120,212 Q94,202 68,208 V246 Q94,240 120,248Z", W)}${P("M120,212 Q146,202 172,208 V246 Q146,240 120,248Z", "#fff3d6")}${L("M76,218 Q94,214 112,220 M76,230 Q94,226 112,232", B, 2)}
-    ${[0, 0.8, 1.6].map((d) => `<path class="fp" d="M120,214 Q146,206 166,211 V242 Q146,238 120,246Z" fill="#fff" ${st} style="animation-delay:${d}s"/>`).join("")}</g>` +
-      IT(
-        `<g class="gl">${C(200, 56, 11, Y)}<rect x="195" y="67" width="10" height="7" rx="2" fill="${W}" ${st}/>${L("M200,32 V38 M180,40 L184,45 M220,40 L216,45 M176,58 H182 M218,58 H224", Y, 3)}</g>`,
-        0.8,
-      ) +
-      T(32, 100, "✦", Y, 0.4, 22),
-  },
-  {
-    n: "Ivy",
-    r: "Green Thumb",
-    b: "Follows every butterfly with her eyes.",
-    t: "#dff0e0",
-    fx: {
-      k: 4,
-      s: [
-        [
-          {
-            ...M.smile,
-            eL: 1.1,
-            eR: 1.1,
-            gx: 5,
-            gy: -5,
-            bLy: -4,
-            bRy: -4,
-            hr: 4,
-            px: 0,
-            py: 0,
-          },
-          1500,
-        ],
-        [
-          {
-            ...M.o,
-            eL: 1.2,
-            eR: 1.2,
-            gx: 6,
-            gy: 0,
-            bLy: -5,
-            bRy: -5,
-            hr: 5,
-            px: 12,
-            py: 50,
-          },
-          1500,
-        ],
-        [
-          {
-            ...M.grin,
-            eL: 1.1,
-            eR: 1.1,
-            gx: 5,
-            gy: 5,
-            bLy: -3,
-            bRy: -3,
-            hr: 4,
-            px: -8,
-            py: 90,
-          },
-          1500,
-        ],
-        [
-          {
-            ...M.smile,
-            eL: 1.2,
-            eR: 1.2,
-            gx: 6,
-            gy: -2,
-            bLy: -4,
-            bRy: -4,
-            hr: 5,
-            px: 6,
-            py: 30,
-          },
-          1500,
-        ],
-      ],
-    },
-    bk: P(
-      "M54,92 Q50,44 100,38 Q150,44 146,92 L146,150 L126,150 L126,120 L74,120 L74,150 L54,150Z",
-      K,
-    ),
-    fr:
-      P("M62,66 Q62,28 100,26 Q138,28 138,66Z", Y) +
-      P("M54,70 Q100,60 146,70 Q150,77 142,79 Q100,71 58,79 Q50,77 54,70Z", Y),
-    body:
-      P(BD, ink) +
-      P("M98,184 Q120,196 142,184 V248 H98Z", W) +
-      L("M106,186 Q120,200 134,186", ink, 2.5) +
-      [
-        [0, -9],
-        [9, -3],
-        [5, 8],
-        [-5, 8],
-        [-9, -3],
-      ]
-        .map(([a, b]) => C(120 + a, 226 + b, 6, K))
-        .join("") +
-      C(120, 226, 4, W),
-    ch: 1,
-    pr: `<g class="rise">${P("M14,248 L18,226 H46 L50,248Z", "#e9967a")}<g class="grow">${L("M32,226 Q28,206 34,184", "#5bb98c", 4)}</g>
-    <g class="pop" style="transition-delay:1s"><ellipse cx="20" cy="208" rx="10" ry="5" transform="rotate(-30 20 208)" fill="#5bb98c" ${st}/></g>
-    <g class="pop" style="transition-delay:1.2s"><ellipse cx="46" cy="204" rx="9" ry="5" transform="rotate(30 46 204)" fill="#5bb98c" ${st}/></g>
-    <g class="pop" style="transition-delay:1.4s">${[
-      [0, -9],
-      [9, -3],
-      [5, 7],
-      [-5, 7],
-      [-9, -3],
-    ]
-      .map(([a, b]) => C(34 + a, 180 + b, 6, K))
-      .join("")}${C(34, 180, 4.5, Y)}</g></g>
-    <g transform="translate(200 60)"><g class="mv">${IT(`<g class="wg"><ellipse cx="-7" cy="-3" rx="8" ry="6" fill="${B}" ${st}/><ellipse cx="7" cy="-3" rx="8" ry="6" fill="${B}" ${st}/></g>${L("M0,-6 V6", ink, 2)}`, 0.2)}</g></g>`,
-  },
-  {
-    n: "Sam",
-    r: "Coffee Chief",
-    b: "Sniffs, sips, sighs, and wakes right up.",
-    t: "#f4e6da",
-    fx: {
-      k: 5,
-      s: [
-        [{ ...M.smile, ...CL, bLy: -3, bRy: -3, hr: -4, hy: -3 }, 1700],
-        [{ ...M.o, ...CL, hr: -6, hy: -4 }, 1200],
-        [{ ...M.grin, ...CL, bLy: -4, bRy: -4, hr: 3 }, 1400],
-        [{ ...M.smirk, eL: 1.3, eR: 1.3, bLy: -6, bRy: -6 }, 1300],
-      ],
-    },
-    beard: 1,
-    fr:
-      P("M62,74 Q62,34 100,30 Q138,34 138,74Z", ink) +
-      `<rect x="58" y="64" width="84" height="16" rx="8" fill="${S2}" ${st}/>` +
-      L(
-        "M72,67 v10 M84,67 v10 M96,67 v10 M108,67 v10 M120,67 v10 M130,67 v10",
-        "#4a4f8c",
-        2,
-      ) +
-      P(
-        "M64,92 Q60,132 84,142 Q100,150 116,142 Q140,132 136,92 Q131,108 122,112 Q112,104 100,106 Q88,104 78,112 Q69,108 64,92Z",
-        ink,
-      ),
-    body: P(BD, S2),
-    sh: 1,
-    pr:
-      `<g class="rise">${P("M98,206 H142 V240 Q142,248 134,248 H106 Q98,248 98,240Z", W)}${L("M142,214 Q160,214 160,226 Q160,238 142,236", ink, 4)}<rect x="101" y="209" width="38" height="8" fill="#b9805a"/>` +
-      [106, 120, 134]
-        .map((x, i) =>
-          L(
-            `M${x},204 q-7,-9 0,-18 q7,-9 0,-18 q-7,-9 0,-18`,
-            "#cfd3e6",
-            4,
-            `pathLength="100" class="wisp" style="animation-delay:${i * 0.7}s"`,
-          ),
-        )
-        .join("") +
-      `</g>`,
-  },
-  {
-    n: "Kai",
-    r: "Photographer",
-    b: "Winks to focus, grins when he nails the shot.",
-    t: "#fbe3ea",
-    fx: {
-      k: 6,
-      s: [
-        [
-          { ...M.flat, eR: 0.08, gx: 4, bLy: 2, bLr: 8, hr: -4, lk: 0.15 },
-          1100,
-        ],
-        [{ ...M.flat, eR: 0.08, gx: 2, bLy: 2, bLr: 8, hr: -3, lk: 1 }, 1000],
-        [
-          {
-            ...M.grin,
-            eL: 1.2,
-            eR: 1.2,
-            bLy: -4,
-            bRy: -4,
-            hr: 2,
-            hy: -3,
-            lk: 1,
-            hook: 1,
-          },
-          1300,
-        ],
-        [
-          { ...M.smile, eL: 0.9, eR: 0.9, gx: -4, gy: 4, hr: 3, hy: 3, lk: 1 },
-          1200,
-        ],
-        [
-          { ...M.smirk, gx: 5, gy: -2, bLy: -3, bRy: -3, hr: -3, lk: 0.3 },
-          1200,
-        ],
-      ],
-    },
-    bk: P(
-      "M58,94 Q52,38 100,30 Q148,38 142,94 L140,130 L126,126 L74,126 L60,130Z",
-      ink,
-    ),
-    fr:
-      P(
-        "M62,92 Q58,46 100,40 Q142,46 138,92 Q134,68 120,60 Q104,70 84,62 Q66,72 62,92Z",
-        ink,
-      ) +
-      P("M64,100 L66,128 L74,124 L70,102Z", ink) +
-      P("M136,100 L134,128 L126,124 L130,102Z", ink) +
-      glasses("#ef8a8a"),
-    body:
-      P(BD, Y) +
-      '<path d="M96,186 Q120,200 144,186 L140,196 Q120,210 100,196Z" fill="#1f2340"/>' +
-      L("M98,192 L120,214 L142,192", ink, 2.5) +
-      L("M72,232 V248 M168,232 V248", ink, 2.5),
-    sh: 1,
-    pr:
-      `<g class="rise"><g class="cam">${P("M72,222 Q72,214 80,214 H160 Q168,214 168,222 V244 Q168,248 162,248 H78 Q72,248 72,244Z", ink)}<rect x="98" y="205" width="28" height="11" rx="3" fill="${ink}"/><rect class="gl" x="142" y="220" width="14" height="8" rx="2" fill="${Y}"/>
-    <circle cx="116" cy="231" r="14" fill="#2c3358" stroke="${W}" stroke-width="3"/><circle cx="116" cy="231" r="7" fill="#3b4678"/><circle class="lr" cx="116" cy="231" r="10.5" fill="none" stroke="${G}" stroke-width="2" stroke-dasharray="5 5"/><circle cx="111" cy="226" r="2.5" fill="${W}"/></g></g>` +
-      IT(
-        `<g class="lock" style="color:#f29a9a">${L("M68,70 V54 H84 M172,70 V54 H156 M68,162 V178 H84 M172,162 V178 H156", "currentColor", 4)}</g>`,
-      ) +
-      `<path class="flash" d="M149,204 L153,220 L169,224 L153,228 L149,244 L145,228 L129,224 L145,220Z" fill="${Y}" ${st}/>`,
-  },
-];
-
-const CHK = `<ellipse cx="79" cy="102" rx="6.5" ry="4.2" fill="#f4a3a3"/><ellipse cx="121" cy="102" rx="6.5" ry="4.2" fill="#f4a3a3"/>`;
-const EAR =
-  `<ellipse cx="66" cy="92" rx="6" ry="9" fill="#fff" ${st}/><ellipse cx="134" cy="92" rx="6" ry="9" fill="#fff" ${st}/>` +
-  L("M64,87 q-3,5 0,10", ink, 2) +
-  L("M136,87 q3,5 0,10", ink, 2);
-const face = (
-  c,
-  i,
-) => `<svg viewBox="0 0 240 252" class="av c${i}" aria-hidden="true">
-<g class="pr">${c.bg || ""}</g>
-<g class="head"><g transform="translate(20 28)">${c.bk || ""}</g></g>
-${c.nk || ""}
-<rect x="107" y="148" width="26" height="46" fill="#fff" ${st}/>${c.sh ? '<path d="M113,158 H133 V168 Q124,172 113,161Z" fill="#f4b0aa"/>' : ""}
-${c.body}<path d="M36,248 H204" fill="none" stroke="${ink}" stroke-width="3" stroke-linecap="round"/>
-<g class="head"><g transform="translate(20 28)">
-${EAR}
-<ellipse cx="100" cy="88" rx="34" ry="42" fill="#fff" ${st}/>${c.gl || ""}
-${c.ch ? CHK : ""}
-<g class="gz"><g class="blk"><g class="eyL"><circle cx="87" cy="90" r="2.9" fill="${ink}"/></g><g class="eyR"><circle cx="113" cy="90" r="2.9" fill="${ink}"/></g></g></g>
-${L("M101,86 L99,101 Q101,104 105,102", ink, 2.2)}
-${c.fr}
-<g class="bl2">${L("M79,76 q8,-5 16,0", ink, 2.5)}</g><g class="br2">${L("M105,76 q8,-5 16,0", ink, 2.5)}</g>
-<g${c.beard ? ' transform="translate(0 14)"' : ""}><path class="mp" d="" fill="#d9626d" fill-opacity="0" stroke="${c.beard ? W : ink}" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/><ellipse class="tgm" rx="5" ry="4" fill="#e8737f" stroke="${ink}" stroke-width="2"/></g>
-${c.hx || ""}</g></g>
-<g class="pr">${c.pr}</g></svg>`;
-
-document.getElementById("grid").innerHTML = TEAM.map(
-  (c, i) =>
-    `<article class="card" tabindex="0"><div class="stage" style="--t:${c.t}">${face(c, i)}</div><h3>${c.n}</h3><p class="role">${c.r}</p><p class="blurb">${c.b}</p></article>`,
-).join("");
-const hoverable = matchMedia("(hover:hover)").matches;
-document.querySelectorAll(".card").forEach((c, i) => {
-  const fc = Face(c, TEAM[i].fx),
-    set = (v) => {
-      c.classList.toggle("on", v);
-      v ? fc.start() : fc.stop();
-    };
-  c.addEventListener("pointerenter", (e) => {
-    if (e.pointerType === "mouse") set(true);
+    function on() { card.classList.add("go"); }
+    function off() { card.classList.remove("go"); }
+    card.addEventListener("pointerenter", function (e) { if (e.pointerType !== "touch") on(); });
+    card.addEventListener("pointerleave", function (e) { if (e.pointerType !== "touch") off(); });
+    card.addEventListener("pointerdown", function (e) {
+      if (e.pointerType === "touch") { cards.forEach(function (c) { if (c !== card) c.classList.remove("go"); }); card.classList.toggle("go"); }
+    });
+    card.addEventListener("focus", function () { try { if (card.matches(":focus-visible")) on(); } catch (err) { on(); } });
+    card.addEventListener("blur", off);
   });
-  c.addEventListener("pointerleave", (e) => {
-    if (e.pointerType === "mouse") set(false);
-  });
-  c.addEventListener("focus", () => set(true));
-  c.addEventListener("blur", () => set(false));
-  c.addEventListener("click", () => {
-    if (!hoverable) set(!c.classList.contains("on"));
-  });
-});
+})();
